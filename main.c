@@ -32,17 +32,17 @@ struct PileNode {
     int sizeOfPile;
 };
 
-int addCard(Card *newCard, Card **list);
-void printBoard(Card *C1, Card *C2, Card *C3, Card *C4, Card *C5, Card *C6, Card *C7, Card *F1, Card *F2, Card *F3, Card *F4);
-void distributeCards();
-
 Pile *pileHead = NULL;
 Pile *pileTail = NULL;
 
-// Console variables
+// Initial variables for the console. These will be modified.
 char input[64];
 char message[256] = "HELLO";
-char lastCom[64] = "NONE";
+char lastCommand[64] = "NONE";
+
+int addCard(Card *newCard, Card **list);
+void printBoard();
+void distributeCards();
 
 int main() {
     Card card = {NULL,NULL,'2','H'};
@@ -54,7 +54,7 @@ int main() {
     addCard(&card1, &C1);
     addCard(&card2, &C1);
 
-    printBoard(C1, C2, C3, C4, C5, C6, C7, F1, F2, F3, F4);
+    printBoard();
 
     // printf("%c", C1->suit);
     // printf("\n" "%c", C1->next->suit);
@@ -84,16 +84,42 @@ int addCard(Card *newCard, Card **list) {
     return 0;
 }
 
-void printBoard(Card *C1, Card *C2, Card *C3, Card *C4, Card *C5, Card *C6, Card *C7, Card *F1, Card *F2, Card *F3, Card *F4) {
+void printBoard() {
     printf("C1\tC2\tC3\tC4\tC5\tC6\tC7\n\n");
 
     Pile *P1, Cx;
-    Card *pile = NULL;
+    Card *tempCard = NULL;
+
+    int column = 0;
+    int row = 0;
 
     // P1 = pileHead->next->next->next->next->next->next;
 
+    while (1) {     // While (1) is another word for while true.
 
-    printf("\nLAST Command: %s\n", lastCom);
+        /* Here we are printing the content of the Card nodes. If they are empty, a "." will be printed.
+         * If they contain something we print the number and suit of that particular card node. */
+        if (tempCard == NULL) {
+            printf(".");
+            column++;
+        } else {
+
+        }
+
+        printf("\t");
+
+        if (column == 7) {
+            printf("\n");
+            column = 0;
+            row++;
+        }
+
+        if (row == 6) {
+            break;
+        }
+    }
+
+    printf("\nLAST Command: %s\n", lastCommand);
     printf("Message: %s\n", message);
     printf("INPUT > ");
 }
