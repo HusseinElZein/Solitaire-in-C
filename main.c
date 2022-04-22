@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-typedef struct cardType Card;
+typedef struct Node Card;
 
-struct cardType {
+struct Node {
     Card *next;
     Card *prev;
     char number;
@@ -45,15 +45,17 @@ int addCard(Card *newCard, Card **list){
 
 int main() {
     Card card = {NULL,NULL,'2','H'};
-
     Card card1 = {NULL,NULL,'3','K'};
+    Card card2 = {NULL, NULL, '4', 'P'};
 
 
     addCard(&card, &C1);
     addCard(&card1, &C1);
+    addCard(&card2, &C1);
 
     printf("%c", C1->suit);
     printf("\n" "%c", C1->next->suit);
+    printf("\n" "%c", C1->next->next->suit);
 
     return 0;
 }
