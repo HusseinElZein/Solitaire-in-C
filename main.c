@@ -1,42 +1,38 @@
 #include <stdio.h>
 
+typedef struct cardType Card;
 
-typedef struct CardType Card;
-
-struct CardType{
+struct cardType {
     Card *next;
     Card *prev;
     char number;
     char suit;
 };
 
-Card *c1 = NULL;
-Card *c2 = NULL;
-Card *c3 = NULL;
-Card *c4 = NULL;
-Card *c5 = NULL;
-Card *c6 = NULL;
-Card *c7 = NULL;
+Card *C1 = NULL;
+Card *C2 = NULL;
+Card *C3 = NULL;
+Card *C4 = NULL;
+Card *C5 = NULL;
+Card *C6 = NULL;
+Card *C7 = NULL;
 
-Card *f1 = NULL;
-Card *f2 = NULL;
-Card *f3 = NULL;
-Card *f4 = NULL;
-
-
+Card *F1 = NULL;
+Card *F2 = NULL;
+Card *F3 = NULL;
+Card *F4 = NULL;
 
 int addCard(Card *newCard, Card **list){
+    Card *current = (Card *) list;
 
-    Card *current = list;
-
-    if(*list == NULL){
+    if (*list == NULL) {
         *list = newCard;
     }
 
-    while(current->next != NULL) {
+    while (current->next != NULL) {
         current = current->next;
 
-        if(current->next == NULL){
+        if (current->next == NULL){
             current->next = newCard;
             newCard->prev = current;
             newCard->next = NULL;
@@ -46,17 +42,18 @@ int addCard(Card *newCard, Card **list){
     return 0;
 }
 
+
 int main() {
     Card card = {NULL,NULL,'2','H'};
 
     Card card1 = {NULL,NULL,'3','K'};
 
 
-    addCard(&card, &c1);
-    addCard(&card1, c1);
+    addCard(&card, &C1);
+    addCard(&card1, &C1);
 
-    printf("%c", c1->suit);
-    printf("\n" "%c", c1->next->suit);
+    printf("%c", C1->suit);
+    printf("\n" "%c", C1->next->suit);
 
     return 0;
 }
