@@ -3,7 +3,9 @@
 typedef struct CardNode Card;
 typedef struct PileNode Pile;
 
-struct CardNode {
+typedef struct CardNode Card;
+
+struct CardNode{
     Card *next;
     Card *prev;
     char number;
@@ -43,38 +45,54 @@ char lastCommand[64] = "NONE";
 int addCard(Card *newCard, Card **list);
 void printBoard();
 void distributeCards();
+void scanForInput();
+
+
+
+
+
 
 int main() {
-    Card card = {NULL,NULL,'2','H'};
-    Card card1 = {NULL,NULL,'3','K'};
-    Card card2 = {NULL, NULL, '4', 'P'};
 
 
-    addCard(&card, &C1);
-    addCard(&card1, &C1);
-    addCard(&card2, &C1);
+
+
 
     printBoard();
 
-    // printf("%c", C1->suit);
-    // printf("\n" "%c", C1->next->suit);
-    // printf("\n" "%c", C1->next->next->suit);
+    scanForInput();
+
+
 
     return 0;
 }
 
+//C1->C2
+//C1:AC->C3
+void scanForInput(){
+    char str[20];
+    scanf("%s", str);
 
-int addCard(Card *newCard, Card **list) {
-    Card *current = (Card *) list;
+    if(str[0] == 'C'){
+        printf("You want to add into a column" "\n");
+    }
 
-    if (*list == NULL) {
+    printf("You wrote %s" "\n", str);
+}
+
+
+int addCard(Card *newCard, Card **list){
+
+    Card *current = list;
+
+    if(*list == NULL) {
         *list = newCard;
     }
 
-    while (current->next != NULL) {
+    while(current->next != NULL) {
         current = current->next;
 
-        if (current->next == NULL){
+        if(current->next == NULL){
             current->next = newCard;
             newCard->prev = current;
             newCard->next = NULL;
@@ -122,6 +140,8 @@ void printBoard() {
     printf("\nLAST Command: %s\n", lastCommand);
     printf("Message: %s\n", message);
     printf("INPUT > ");
+
+
 }
 
 /*
