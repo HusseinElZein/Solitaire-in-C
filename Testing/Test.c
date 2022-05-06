@@ -35,6 +35,8 @@ int main(){
 
 
 
+
+
 int addCard(Card *newCard, Card **list){
 
     Card *current = list;

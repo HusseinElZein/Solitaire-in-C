@@ -46,6 +46,8 @@ int addCard(Card *newCard, Card **list);
 void printBoard();
 void distributeCards();
 void scanForInput();
+void inputCommand(char command[]);
+void simpleAdder(char command[]);
 
 
 
@@ -55,35 +57,74 @@ void scanForInput();
 int main() {
 
 
-
-
-
     printBoard();
 
     scanForInput();
 
-
-
     return 0;
 }
 
-//C1->C2
-//C1:AC->C3
+
 void scanForInput(){
     char str[20];
     scanf("%s", str);
 
-    if(str[0] == 'C'){
-        printf("You want to add into a column" "\n");
-    }
+    //simpleAdder(str);
 
     printf("You wrote %s" "\n", str);
+}
+
+void moveCard(Card **Fromlist, Card **Tolist){
+
+}
+
+
+/*void simpleAdder(char command[]){
+    if(command[0] == 'C'){
+
+        switch (command[1]) {
+            case 1:
+
+        }
+
+    }
+}
+ */
+
+
+
+void inputCommand(char command[]){
+    if(command[0] == 'C'){
+
+        if(command[1] < 8 && command[1] > 0) {
+
+            if (command[2] == ':') {
+
+            } else if(command[2] == '-' && command[3] == '>' || command[5] == '-' && command[6] == '>') {
+
+            } else {
+
+            }
+        }else{
+            //Error
+        }
+
+    }
+
+    if(command[0] == 'F'){
+        if(command[1] < 5 && command[1] > 0) {
+
+            if(command[2] == '-' && command[3] == '>'){
+
+            }
+        }
+    }
 }
 
 
 int addCard(Card *newCard, Card **list){
 
-    Card *current = list;
+    Card *current = *list;
 
     if(*list == NULL) {
         *list = newCard;
