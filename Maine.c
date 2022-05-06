@@ -38,7 +38,7 @@ void startAdding(Card *cardMoved, Pile *pile);
 void moveCardsToPile(Card *cardMoved, Pile *pile);
 Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile);
 void addInShuffledCardsIntoColumn(char shuffledCards[]);
-FILE LD(char openFileCommand[]);
+void LD(char openFileCommand[]);
 
 
 //This returns the tail of a given pile
@@ -598,18 +598,25 @@ static void printBoard() {
     }
 }
 
-FILE LD(char openFileCommand[]){
+char allCards[104];
 
-    FILE *pF = fopen("Cards.txt", "r");
+void LD(char openFileCommand[]){
+
+    FILE *pF = fopen("/Users/husseinel-zein/Desktop/Machine programming/project 2/Cards.txt", "r");
     char buffer[255];
 
     if(pF == NULL) {
         printf("Unable to open file! Now opening standard file Cards.txt\n");
     } else {
-        while(fgets(buffer, 255, pF) != NULL) {
-            printf("%s", buffer);
+        int i = 0;
+
+        while(!feof(pF))
+        {
+            allCards[i] = fgetc(pF);
+            i++;
         }
     }
+    printf("%c%c", allCards[6], allCards[3]);
     fclose(pF);
 }
 
@@ -625,6 +632,8 @@ int main(){
     char openCardCommand[] = "";
 
     LD(openCardCommand);
+
+
 
     /**This tests if the following command works "C2->C1", the method used is MoveCard which contains
      *all the necessary logic in order to move a card**/
