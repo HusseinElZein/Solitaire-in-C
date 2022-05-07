@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 
+
 typedef struct CardNode Card;
 typedef struct PileNode Pile;
 
@@ -39,6 +40,9 @@ void moveCardsToPile(Card *cardMoved, Pile *pile);
 Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile);
 void addInShuffledCardsIntoColumn(char shuffledCards[]);
 void LD(char openFileCommand[]);
+void readIntoArray(FILE *pF);
+void printBoard();
+void SI(char allCards[]);
 
 
 //This returns the tail of a given pile
@@ -442,60 +446,67 @@ void moveCardsToPile(Card *cardMoved, Pile *pile) {
 
 void addInShuffledCardsIntoColumn(char shuffledCards[]) {
 
-    for (int j = 0; j < sizeof(shuffledCards); j += 2) {
-        Card card = {NULL, NULL, NULL, NULL, NULL};
-        card.number = shuffledCards[j];
-        card.suit = shuffledCards[j + 1];
+    for (int j = 0; j < 104; j += 2) {
+        Card *card = malloc(sizeof(Card));
+        card->isHidden = '0';
+        card->suit = '\0';
+        card->number = '\0';
+        card->next = NULL;
+        card->prev = NULL;
+
+
+        card->number = shuffledCards[j];
+        card->suit = shuffledCards[j + 1];
 
         int k = j / 2;
 
         if (k == 0) {
-            startAdding(&card, C1);
+            startAdding(card, C1);
         }
         if (k > 0 && k < 7) {
             if (k == 1) {
-                card.isHidden = 1;
+                card->isHidden = 1;
             }
-            startAdding(&card, C2);
+            startAdding(card, C2);
         }
         if (k > 6 && k < 14) {
             if (k == 7 || k == 8) {
-                card.isHidden = 1;
+                card->isHidden = 1;
             }
-            startAdding(&card, C3);
+            startAdding(card, C3);
         }
         if (k > 13 && k < 22) {
             if (k == 14 || k == 15 || k == 16) {
-                card.isHidden = 1;
+                card->isHidden = 1;
             }
-            startAdding(&card, C4);
+            startAdding(card, C4);
         }
         if (k > 21 && k < 31) {
 
             if (k == 22 || k == 23 || k == 24 || k == 25) {
-                card.isHidden = 1;
+                card->isHidden = 1;
             }
-            startAdding(&card, C5);
+            startAdding(card, C5);
         }
         if (k > 30 && k < 41) {
 
             if (k == 31 || k == 32 || k == 33 || k == 34 || k == 35) {
-                card.isHidden = 1;
+                card->isHidden = 1;
             }
-            startAdding(&card, C6);
+            startAdding(card, C6);
         }
         if (k > 40 && k < 52) {
             if (k == 41 || k == 42 || k == 43 || k == 44 || k == 45 || k == 46) {
-                card.isHidden = 1;
+                card->isHidden = 1;
             }
-            startAdding(&card, C7);
+            startAdding(card, C7);
         }
     }
 }
 
-static void printBoard() {
+void printBoard() {
 
-    printf("C1" "\t" "\t" "C2" "\t" "\t" "C3" "\t" "\t"  "C4" "\t"  "\t" "C5" "\t" "\t" "C6" "\t" "\t" "C7");
+    printf("C1\t\tC2\t\tC3\t\tC4\t\tC5\t\tC6\t\tC7\n");
 
     Card *trackOfC1 = C1->head;
     Card *trackOfC2 = C2->head;
@@ -510,82 +521,82 @@ static void printBoard() {
     while (!done) {
 
         if (trackOfC1 != NULL) {
-            printf("%c%c""\t""\t", trackOfC1->number, trackOfC1->suit);
+            printf("%c%c\t\t", trackOfC1->number, trackOfC1->suit);
             trackOfC1 = trackOfC1->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         if (trackOfC2 != NULL) {
 
             if (trackOfC2->isHidden == 1) {
-                printf("[]" "\t" "\t");
+                printf("[]\t\t");
             } else {
-                printf("%c%c""\t""\t", trackOfC2->number, trackOfC2->suit);
+                printf("%c%c\t\t", trackOfC2->number, trackOfC2->suit);
             }
             trackOfC2 = trackOfC2->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         if (trackOfC3 != NULL) {
 
             if (trackOfC3->isHidden == 1) {
-                printf("[]" "\t" "\t");
+                printf("[]\t\t");
             } else {
-                printf("%c%c""\t""\t", trackOfC3->number, trackOfC3->suit);
+                printf("%c%c\t\t", trackOfC3->number, trackOfC3->suit);
             }
             trackOfC3 = trackOfC3->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         if (trackOfC4 != NULL) {
 
             if (trackOfC4->isHidden == 1) {
-                printf("[]" "\t" "\t");
+                printf("[]\t\t");
             } else {
-                printf("%c%c""\t""\t", trackOfC4->number, trackOfC4->suit);
+                printf("%c%c\t\t", trackOfC4->number, trackOfC4->suit);
             }
             trackOfC4 = trackOfC4->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         if (trackOfC5 != NULL) {
 
             if (trackOfC5->isHidden == 1) {
-                printf("[]" "\t" "\t");
+                printf("[]\t" "\t");
             } else {
-                printf("%c%c""\t""\t", trackOfC5->number, trackOfC5->suit);
+                printf("%c%c\t\t", trackOfC5->number, trackOfC5->suit);
             }
             trackOfC5 = trackOfC5->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         if (trackOfC6 != NULL) {
 
             if (trackOfC6->isHidden == 1) {
-                printf("[]" "\t" "\t");
+                printf("[]\t\t");
             } else {
-                printf("%c%c""\t""\t", trackOfC6->number, trackOfC6->suit);
+                printf("%c%c\t\t", trackOfC6->number, trackOfC6->suit);
             }
             trackOfC6 = trackOfC6->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         if (trackOfC7 != NULL) {
 
             if (trackOfC7->isHidden == 1) {
-                printf("[]" "\t" "\t");
+                printf("[]\t\t");
             } else {
-                printf("%c%c""\t""\t", trackOfC7->number, trackOfC7->suit);
+                printf("%c%c\t\t", trackOfC7->number, trackOfC7->suit);
             }
             trackOfC7 = trackOfC7->next;
         } else {
-            printf("\t""\t");
+            printf("\t\t");
         }
 
         printf("\n");
@@ -594,48 +605,99 @@ static void printBoard() {
             && trackOfC5 == NULL && trackOfC6 == NULL && trackOfC7 == NULL) {
             done = true;
         }
-
     }
 }
 
 char allCards[104];
 
-void LD(char openFileCommand[]){
+void readIntoArray(FILE *pF) {
 
-    FILE *pF = fopen("/Users/husseinel-zein/Desktop/Machine programming/project 2/Cards.txt", "r");
+    int lineNumber = 1;
 
-    if(pF == NULL) {
-        printf("Unable to open file! Now opening standard file Cards.txt\n");
-    } else {
-        int i = 0;
+    for (int i = 0; i < 104; i++) {
 
-        while(!feof(pF))
-        {
-            char c = fgetc(pF);
-            if((c != '\n') && ((c > '1' && c < '10') || c == 'A' || c == 'T' || c == 'J' || c == 'Q' || c == 'K'
-            || c == 'C' || c == 'D' || c == 'H' || c == 'S')) {
+        char c = fgetc(pF);
+        if (c != '\n') {
+            if (((c > '1' && c <= '9') || c == 'A' || c == 'T' || c == 'J' || c == 'Q' || c == 'K'
+                 || c == 'C' || c == 'D' || c == 'H' || c == 'S')) {
                 allCards[i] = c;
                 i++;
+                lineNumber++;
+            } else {
+                int half = lineNumber / 2;
+                printf("There is an error reading your txt file at line %d", half);
+                break;
             }
-
         }
     }
+}
 
-    /**To check if there is no spaces in the array. And the correct deck of cards are placed**/
-    //printf("%c%c\n%c%c\n", allCards[0], allCards[1], allCards[2], allCards[3]);
-    //printf("%c%c", allCards[102], allCards[103]);
+void LD(char openFileCommand[]) {
+    FILE *pF = fopen(openFileCommand, "r");
+
+    if (pF == NULL) {
+        printf("Unable to open file! Have you made sure to put in your txt file in the folder: cmake-build-debug ?"
+               " Now opening standard file Cards.txt\n");
+
+        pF = fopen("Cards.txt", "r");
+        readIntoArray(pF);
+    } else {
+        readIntoArray(pF);
+    }
     fclose(pF);
 }
 
+void SI(char allCards[]){
+    char halfOne[52];
+    char halfTwo[52];
 
+    for (int j = 0; j < 52; j++) {
+        halfOne[j] = allCards[j];
+    }
+
+    for (int j = 52; j < 104; j++) {
+        halfTwo[j - 52] = allCards[j];
+    }
+
+    int k = 0;
+
+    for (int j = 0; j < 52 - 1; j += 2) {
+        allCards[k] = halfOne[j];
+        k++;
+        allCards[k] = halfOne[j + 1];
+        k++;
+        allCards[k] = halfTwo[j];
+        k++;
+        allCards[k] = halfTwo[j + 1];
+        k++;
+    }
+}
 
 
 int main(){
 
-    char openCardCommand[] = "";
+    /**This tests if our input of txt file works with input from the user
+     * And: To check if there is no spaces in the array. And the correct deck of cards are placed**/
+    /*char openCardCommand[] = "CardsWILLFAIL.txt";
+    LD(openCardCommand);
+    for (int j = 0; j < 104; j+=2) {
+        printf("%c%c\n", allCards[j], allCards[j+1]);
+    }
+     */
 
+    char openCardCommand[] = "Cards.txt";
     LD(openCardCommand);
 
+
+    initPiles();
+
+    for (int j = 0; j < 104; j+=2) {
+        printf("%c%c\n", allCards[j], allCards[j + 1]);
+    }
+    SI(allCards);
+
+    addInShuffledCardsIntoColumn(allCards);
+    printBoard();
 
 
     /**This tests if the following command works "C2->C1", the method used is MoveCard which contains
