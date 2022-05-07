@@ -603,7 +603,6 @@ char allCards[104];
 void LD(char openFileCommand[]){
 
     FILE *pF = fopen("/Users/husseinel-zein/Desktop/Machine programming/project 2/Cards.txt", "r");
-    char buffer[255];
 
     if(pF == NULL) {
         printf("Unable to open file! Now opening standard file Cards.txt\n");
@@ -612,17 +611,21 @@ void LD(char openFileCommand[]){
 
         while(!feof(pF))
         {
-            allCards[i] = fgetc(pF);
-            i++;
+            char c = fgetc(pF);
+            if((c != '\n') && ((c > '1' && c < '10') || c == 'A' || c == 'T' || c == 'J' || c == 'Q' || c == 'K'
+            || c == 'C' || c == 'D' || c == 'H' || c == 'S')) {
+                allCards[i] = c;
+                i++;
+            }
+
         }
     }
-    printf("%c%c", allCards[6], allCards[3]);
+
+    /**To check if there is no spaces in the array. And the correct deck of cards are placed**/
+    //printf("%c%c\n%c%c\n", allCards[0], allCards[1], allCards[2], allCards[3]);
+    //printf("%c%c", allCards[102], allCards[103]);
     fclose(pF);
 }
-
-
-
-
 
 
 
