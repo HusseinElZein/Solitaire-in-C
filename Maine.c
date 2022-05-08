@@ -599,13 +599,27 @@ void printBoard() {
             printf("\t\t");
         }
 
-        printf("\n");
-
         if (trackOfC1 == NULL && trackOfC2 == NULL && trackOfC3 == NULL && trackOfC4 == NULL
             && trackOfC5 == NULL && trackOfC6 == NULL && trackOfC7 == NULL) {
             done = true;
         }
     }
+}
+
+void inGameInput(){
+    printf("\nLAST Command: %s\n", lastCommand);
+    printf("Message %s\n", message);
+    printf("INPUT > ");
+
+    char str[20];
+    scanf("%s", str);
+    printf("\n");
+
+    strcpy(lastCommand, str);
+
+    printf("\nLAST Command: %s\n", lastCommand);
+    printf("Message %s\n", message);
+    printf("INPUT > ");
 }
 
 char allCards[104];
@@ -678,6 +692,11 @@ void SI(char allCards[]){
 
 
 int main(){
+
+    while(!fileLineFail){
+        printBoard();
+        inGameInput();
+    }
 
     /**This tests if our input of txt file works with input from the user
      * And: To check if there is no spaces in the array. And the correct deck of cards are placed**/
