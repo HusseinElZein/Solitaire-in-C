@@ -609,12 +609,13 @@ void printBoard() {
 }
 
 char allCards[104];
+bool fileLineFail = false;
 
 void readIntoArray(FILE *pF) {
 
     int lineNumber = 1;
 
-    for (int i = 0; i < 104; i++) {
+    while(!feof(pF) && lineNumber != 105) {
 
         char c = fgetc(pF);
         if (c != '\n') {
@@ -625,11 +626,13 @@ void readIntoArray(FILE *pF) {
                 lineNumber++;
             } else {
                 int half = lineNumber / 2;
-                printf("There is an error reading your txt file at line %d", half);
+                printf("There is an error reading your txt file at line %d\n", half);
+                fileLineFail = true;
                 break;
             }
         }
     }
+    strcpy(message, "File loaded succesfully");
 }
 
 void LD(char openFileCommand[]) {
@@ -685,19 +688,20 @@ int main(){
     }
      */
 
-    char openCardCommand[] = "Cards.txt";
+    /**This tests if the SI method works and shuffles correctfully. This also tests our addInShuffledCardsIntoColumn
+     * method, and also our print method. It overall sees if the correct pointers are placed in the columns and inside
+     * printboard() method**/
+    /*char openCardCommand[] = "Cards.txt";
     LD(openCardCommand);
 
 
     initPiles();
 
-    for (int j = 0; j < 104; j+=2) {
-        printf("%c%c\n", allCards[j], allCards[j + 1]);
-    }
     SI(allCards);
 
     addInShuffledCardsIntoColumn(allCards);
     printBoard();
+     */
 
 
     /**This tests if the following command works "C2->C1", the method used is MoveCard which contains
