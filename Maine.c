@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
+#include <time.h>
 
 
 typedef struct CardNode Card;
@@ -43,6 +43,10 @@ void LD(char openFileCommand[]);
 void readIntoArray(FILE *pF);
 void printBoard();
 void SI(char allCards[]);
+void SR(char allCards[]);
+int getRandomNumber(int min, int max);
+char canBeMovedToFoundation(char numberOfCardMoved);
+void moveCardToFoundation(Card *cardMoved, Pile *pile);
 
 
 //This returns the tail of a given pile
@@ -66,23 +70,40 @@ void removeCardFromPile(Pile *pile) {
         strcpy(message, "OK");
     } else {
         strcpy(message, "error, empty pile");
+        return;
     }
     pile->sizeOfPile--;
 }
+bool cardCanMove = false;
 
 //This either removes a bottom card from one pile and adds it to the other
 //Or it removes a certain amount of cards from one pile to another
 void moveCard(char commands[]) {
 
+    //Checking if can be moved from a column or foundation only into a column
     if ((commands[0] == 'C' || commands[0] == 'F')
         && commands[2] == '-' && commands[3] == '>' &&
-        (commands[4] == 'C' || commands[4] == 'F')) {
+        commands[4] == 'C') {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
+
         removeCardFromPile(selectFromPile(commands));
         moveCardToPile(card, selectToPile(commands));
 
-    } else if (commands[0] == 'C' && commands[2] == ':'
+    }else if((commands[0] == 'C' || commands[0] == 'F')
+             && commands[2] == '-' && commands[3] == '>' &&
+             commands[4] == 'F'){
+
+        Card *card = chooseTailCardFromPile(*selectFromPile(commands));
+
+        moveCardToFoundation(card, selectToPile(commands));
+        if(cardCanMove){
+            removeCardFromPile(selectFromPile(commands));
+            cardCanMove = false;
+        }
+
+
+    }else if (commands[0] == 'C' && commands[2] == ':'
                && commands[5] == '-' && commands[6] == '>'
                && commands[7] == 'C') {
 
@@ -118,8 +139,61 @@ void moveCardToPile(Card *cardMoved, Pile *pile) {
         pile->tail = cardMoved;
         pile->sizeOfPile++;
         strcpy(message, "OK, card moved");
+        cardCanMove = true;
     } else {
         strcpy(message, "error, card cannot be moved");
+    }
+}
+
+//This moves one card to the bottom of a foundation
+void moveCardToFoundation(Card *cardMoved, Pile *pile) {
+
+    if (pile->sizeOfPile == 0) {
+
+        if (cardMoved->number == 'A') {
+            pile->head = cardMoved;
+            pile->tail = cardMoved;
+            pile->sizeOfPile++;
+            strcpy(message, "OK");
+            cardCanMove = true;
+            return;
+        } else {
+            strcpy(message, "Card is not an A, therefore cannot be moved to foundation");
+            return;
+        }
+    }
+
+        if (pile->tail != NULL && cardMoved->suit == pile->tail->suit
+            && canBeMovedToFoundation(cardMoved->number) == pile->tail->number) {
+            cardMoved->prev = pile->tail;
+            cardMoved->next = NULL;
+            pile->tail->next = cardMoved;
+            pile->tail = cardMoved;
+            pile->sizeOfPile++;
+            strcpy(message, "OK, card moved");
+            cardCanMove = true;
+        } else {
+            strcpy(message, "error, card cannot be moved to foundation");
+        }
+    }
+
+//This returns the next card number in the hierachy
+char canBeMovedToFoundation(char numberOfCardMoved){
+
+    switch (numberOfCardMoved) {
+        case '2': return 'A';
+        case '3': return '2';
+        case '4': return '3';
+        case '5': return '4';
+        case '6': return '5';
+        case '7': return '6';
+        case '8': return '7';
+        case '9': return '8';
+        case 'T': return '9';
+        case 'J': return 'T';
+        case 'Q': return 'J';
+        case 'K': return 'Q';
+        default: return '0';
     }
 }
 
@@ -383,13 +457,19 @@ int i;
 //This chooses a specific card from a specific pile
 Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile) {
 
-    Card *chosenCard = NULL;
+    Card *chosenCard = malloc(sizeof(Card));
+    chosenCard->isHidden = '0';
+    chosenCard->number = '\0';
+    chosenCard->suit = '\0';
+    chosenCard->next = NULL;
+    chosenCard->prev = NULL;
 
     Card *current = pile->tail;
     i = 1;
 
     //May be buggy, and's (&&) do ignore each other for some reason
-    while (current->suit != cardSuit && current->number != number && i < pile->sizeOfPile) {
+    while ((current->suit != cardSuit || current->number != number) && i < pile->sizeOfPile) {
+
         current = current->prev;
         i++;
     }
@@ -506,7 +586,7 @@ void addInShuffledCardsIntoColumn(char shuffledCards[]) {
 
 void printBoard() {
 
-    printf("C1\t\tC2\t\tC3\t\tC4\t\tC5\t\tC6\t\tC7\n");
+    printf("C1\t\tC2\t\tC3\t\tC4\t\tC5\t\tC6\t\tC7\t\t\tF1\t\tF2\t\tF3\t\tF4\n");
 
     Card *trackOfC1 = C1->head;
     Card *trackOfC2 = C2->head;
@@ -516,7 +596,13 @@ void printBoard() {
     Card *trackOfC6 = C6->head;
     Card *trackOfC7 = C7->head;
 
+    Card* F1tail = F1->tail;
+    Card* F2tail = F2->tail;
+    Card* F3tail = F3->tail;
+    Card* F4tail = F4->tail;
+
     bool done = false;
+    bool foundationsPrinted = false;
 
     while (!done) {
 
@@ -590,15 +676,43 @@ void printBoard() {
         if (trackOfC7 != NULL) {
 
             if (trackOfC7->isHidden == 1) {
-                printf("[]\t\t");
+                printf("[]\t\t\t");
             } else {
-                printf("%c%c\t\t", trackOfC7->number, trackOfC7->suit);
+                printf("%c%c\t\t\t", trackOfC7->number, trackOfC7->suit);
             }
             trackOfC7 = trackOfC7->next;
         } else {
-            printf("\t\t");
+            printf("\t\t\t");
         }
 
+        if(!foundationsPrinted) {
+            if (F1tail != NULL) {
+                printf("%c%c\t\t", F1tail->number, F1tail->suit);
+            } else {
+                printf("[]\t\t");
+            }
+
+            if (F2tail != NULL) {
+                printf("%c%c\t\t", F1tail->number, F1tail->suit);
+            } else {
+                printf("[]\t\t");
+            }
+
+            if (F3tail != NULL) {
+                printf("%c%c\t\t", F1tail->number, F1tail->suit);
+            } else {
+                printf("[]\t\t");
+            }
+
+            if (F4tail != NULL) {
+                printf("%c%c", F1tail->number, F1tail->suit);
+            } else {
+                printf("[]\n");
+            }
+            foundationsPrinted = true;
+        }else{
+            printf("\n");
+        }
         if (trackOfC1 == NULL && trackOfC2 == NULL && trackOfC3 == NULL && trackOfC4 == NULL
             && trackOfC5 == NULL && trackOfC6 == NULL && trackOfC7 == NULL) {
             done = true;
@@ -606,24 +720,151 @@ void printBoard() {
     }
 }
 
-void inGameInput(){
+void SW() {
+
+    printf("C1\t\tC2\t\tC3\t\tC4\t\tC5\t\tC6\t\tC7\t\t\tF1\t\tF2\t\tF3\t\tF4\n");
+
+    Card *trackOfC1 = C1->head;
+    Card *trackOfC2 = C2->head;
+    Card *trackOfC3 = C3->head;
+    Card *trackOfC4 = C4->head;
+    Card *trackOfC5 = C5->head;
+    Card *trackOfC6 = C6->head;
+    Card *trackOfC7 = C7->head;
+
+    Card* F1tail = F1->tail;
+    Card* F2tail = F2->tail;
+    Card* F3tail = F3->tail;
+    Card* F4tail = F4->tail;
+
+    bool done = false;
+    bool foundationsPrinted = false;
+
+    while (!done) {
+
+        if (trackOfC1 != NULL) {
+            printf("%c%c\t\t", trackOfC1->number, trackOfC1->suit);
+            trackOfC1 = trackOfC1->next;
+        } else {
+            printf("\t\t");
+        }
+
+        if (trackOfC2 != NULL) {
+                printf("%c%c\t\t", trackOfC2->number, trackOfC2->suit);
+                trackOfC2 = trackOfC2->next;
+        } else {
+            printf("\t\t");
+        }
+
+        if (trackOfC3 != NULL) {
+            printf("%c%c\t\t", trackOfC3->number, trackOfC3->suit);
+            trackOfC3 = trackOfC3->next;
+        } else {
+            printf("\t\t");
+        }
+
+        if (trackOfC4 != NULL) {
+            printf("%c%c\t\t", trackOfC4->number, trackOfC4->suit);
+            trackOfC4 = trackOfC4->next;
+        } else {
+            printf("\t\t");
+        }
+
+        if (trackOfC5 != NULL) {
+            printf("%c%c\t\t", trackOfC5->number, trackOfC5->suit);
+            trackOfC5 = trackOfC5->next;
+        } else {
+            printf("\t\t");
+        }
+
+        if (trackOfC6 != NULL) {
+            printf("%c%c\t\t", trackOfC6->number, trackOfC6->suit);
+            trackOfC6 = trackOfC6->next;
+        } else {
+            printf("\t\t");
+        }
+
+        if (trackOfC7 != NULL) {
+            printf("%c%c\t\t\t", trackOfC7->number, trackOfC7->suit);
+            trackOfC7 = trackOfC7->next;
+        } else {
+            printf("\t\t\t");
+        }
+
+        if(!foundationsPrinted) {
+            if (F1tail != NULL) {
+                printf("%c%c", F1tail->number, F1tail->suit);
+            } else {
+                printf("[]\t\t");
+            }
+
+            if (F2tail != NULL) {
+                printf("%c%c", F2tail->number, F2tail->suit);
+            } else {
+                printf("[]\t\t");
+            }
+
+            if (F3tail != NULL) {
+                printf("%c%c", F3tail->number, F3tail->suit);
+            } else {
+                printf("[]\t\t");
+            }
+
+            if (F4tail != NULL) {
+                printf("%c%c", F4tail->number, F4tail->suit);
+            } else {
+                printf("[]\n");
+            }
+            foundationsPrinted = true;
+        }else{
+            printf("\n");
+        }
+        if (trackOfC1 == NULL && trackOfC2 == NULL && trackOfC3 == NULL && trackOfC4 == NULL
+            && trackOfC5 == NULL && trackOfC6 == NULL && trackOfC7 == NULL) {
+            done = true;
+        }
+    }
+}
+
+void loadGameInput(){
     printf("\nLAST Command: %s\n", lastCommand);
-    printf("Message %s\n", message);
+    printf("Message: %s\n", message);
     printf("INPUT > ");
 
-    char str[20];
-    scanf("%s", str);
+    char str[40];
+    fgets(str, sizeof(str), stdin);
     printf("\n");
 
-    strcpy(lastCommand, str);
+    char lastly[40];
 
-    printf("\nLAST Command: %s\n", lastCommand);
-    printf("Message %s\n", message);
-    printf("INPUT > ");
+    for (int j = 0; j < 40; j++) {
+        if(str[j] != '\0' && str[j] != '\n'){
+            lastly[j] = str[j];
+        }else{
+            break;
+        }
+    }
+    strcpy(lastCommand, lastly);
+
+    if(str[0] == 'L' && str[1] == 'D') {
+
+        char fileName[40];
+
+        for (int j = 3; j < 40; j++) {
+            if(str[j] != '\0'){
+                fileName[j-3] = lastly[j];
+            }else{
+                break;
+            }
+        }
+        LD(fileName);
+    }else{
+        strcpy(message, "No LD command given");
+    }
 }
 
 char allCards[104];
-bool fileLineFail = false;
+bool writeFileName = true;
 
 void readIntoArray(FILE *pF) {
 
@@ -641,12 +882,12 @@ void readIntoArray(FILE *pF) {
             } else {
                 int half = lineNumber / 2;
                 printf("There is an error reading your txt file at line %d\n", half);
-                fileLineFail = true;
                 break;
             }
         }
     }
-    strcpy(message, "File loaded succesfully");
+    strcpy(message, "File loaded successfully");
+    writeFileName = false;
 }
 
 void LD(char openFileCommand[]) {
@@ -655,6 +896,7 @@ void LD(char openFileCommand[]) {
     if (pF == NULL) {
         printf("Unable to open file! Have you made sure to put in your txt file in the folder: cmake-build-debug ?"
                " Now opening standard file Cards.txt\n");
+        writeFileName = false;
 
         pF = fopen("Cards.txt", "r");
         readIntoArray(pF);
@@ -688,15 +930,271 @@ void SI(char allCards[]){
         allCards[k] = halfTwo[j + 1];
         k++;
     }
+    strcpy(message, "Loaded SI successfully");
+}
+
+char shuffledCards[104];
+
+void SR(char allCards[]){
+
+    int checker[52];
+
+    int random = 0;
+
+    int k = 0, i = 0;
+
+    bool isTheSame = true, done = false;
+
+    srand(time(NULL));
+    while (!done) {
+
+        while (isTheSame) {
+
+            random = getRandomNumber(-1, 104);
+
+            for (int j = 0; j < 51; j++) {
+                if (checker[j] == random) {
+                    isTheSame = true;
+                    break;
+                } else {
+                    isTheSame = false;
+                }
+            }
+        }
+
+        checker[i] = random;
+        i++;
+
+        shuffledCards[k] = allCards[random];
+        k++;
+        shuffledCards[k] = allCards[random + 1];
+        k++;
+
+        isTheSame = true;
+
+        for (int j = 0; j < 104; j++) {
+
+            if (shuffledCards[j] == '\0') {
+                done = false;
+                isTheSame = true;
+                break;
+            } else {
+                done = true;
+                isTheSame = false;
+            }
+        }
+    }
+    strcpy(message, "Loaded SR successfully");
+}
+
+int getRandomNumber(int min, int max) {
+
+    bool again = true;
+    int random = 0;
+
+    while (again) {
+
+        random = rand() % max;
+
+        if (random % 2 == 0) {
+            again = false;
+        }
+    }
+    return random;
+}
+
+
+bool writeP = true;
+
+void startGame(){
+    printf("\nLAST Command: %s\n", lastCommand);
+    printf("Message: %s\n", message);
+    printf("INPUT > ");
+
+    char str[40];
+    scanf("%s", str);
+    printf("\n");
+
+    strcpy(lastCommand, str);
+
+    if(str[0] == 'P' && str[2] == '\0') {
+        strcpy(message, "Game started");
+        writeP = false;
+    }else{
+        strcpy(message, "Write P to start game");
+    }
+}
+
+bool shuffleAgain = true;
+void loadShuffleInput() {
+    printf("\nLAST Command: %s\n", lastCommand);
+    printf("Message: %s\n", message);
+    printf("Input > ");
+
+    char str[40];
+    scanf("%s", str);
+    printf("\n");
+
+    strcpy(lastCommand, str);
+
+    if(str[0] == 'S' && str[1] == 'I' && str[2] == '\0') {
+        SI(allCards);
+        addInShuffledCardsIntoColumn(allCards);
+        shuffleAgain = false;
+    }else if(str[0] == 'S' && str[1] == 'R' && str[2] == '\0'){
+        SR(allCards);
+        addInShuffledCardsIntoColumn(shuffledCards);
+        shuffleAgain = false;
+    }else{
+        strcpy(message, "Write a valid shuffle command (SR or SI)");
+    }
+}
+
+bool gameIsFinished(){
+    if(C1->head == NULL && C2->head == NULL && C3->head == NULL && C4->head == NULL && C5->head == NULL
+    && C6->head == NULL && C7->head == NULL){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+void QQ(){
+    exit(0);
+}
+
+void Q(){
+    bool done = false;
+
+    while(!done) {
+        printBoard();
+        printf("\nLAST Command: %s\n", lastCommand);
+        strcpy(message, "Entered Q in play phase");
+        printf("Message: %s\n", message);
+        printf("Input > ");
+
+        char str[5];
+        scanf("%s", str);
+        printf("\n");
+
+        strcpy(lastCommand, str);
+
+        if (str[0] == 'P' && str[1] == '\0') {
+            strcpy(lastCommand, str);
+            done = true;
+            strcpy(message, "OK");
+        }else if(str[0] == 'Q' && str[1] == 'Q' && str[2] == '\0') {
+            strcpy(lastCommand, str);
+            done = true;
+            strcpy(message, "OK");
+        }else{
+            strcpy(message, "Write in QQ to quit, or P to continue playing");
+        }
+    }
 }
 
 
 int main(){
 
-    while(!fileLineFail){
-        printBoard();
-        inGameInput();
+    /**This tests our getRandomNumber function to see if the numbers generated are between 0-102 and in even numbers **/
+    /*for (int j = 0; j < 300; ++j) {
+        printf("%d\n", getRandomNumber(-1, 104));
     }
+    printf("__________________________\n\n\n\n");
+     */
+
+
+    /**This tests our SR function that moves cards randomly and tests SW which prints all cards**/
+    /*initPiles();
+    LD("Cards.txt");
+    SR(allCards);
+    addInShuffledCardsIntoColumn(shuffledCards);
+    SW();
+    printf("\n");
+    printBoard();
+     */
+
+    /**This tests the logic of moving to a foundation with a valid card and a non-valid with matching card-suits
+     * and the correct order of placement (From A to K)**/
+    /*Card card = {NULL, NULL, '2', 'H', '0'};
+    Card card1 = {NULL, NULL, 'A', 'S', '0'};
+
+    initPiles();
+
+    moveCardToPile(&card, C1);
+    moveCardToPile(&card1, C2);
+
+    char command[] = "C2->F1";
+
+    printf("Board before moving to a Foundation\n");
+    printBoard();
+
+    moveCard(command);
+    printf("Board after moving to a Foundation\n");
+    printBoard();
+
+    printf("\nMessage: %s \n", message); //Should say OK!
+
+    char commandTwo[] = "C1->F1";
+    moveCard(commandTwo);
+    printf("Board after moving to a Foundation second time\n");
+    printBoard();
+
+    printf("\nMessage: %s \n", message); //Should say NOT OK!
+     */
+
+
+    /**Main code**/
+    initPiles();
+
+    //First phase, writing in a file name
+    while(writeFileName){
+        printBoard();
+        loadGameInput();
+    }
+    //Second phase, writing in a shuffle command
+    while(shuffleAgain){
+        printBoard();
+        loadShuffleInput();
+    }
+
+    //Third phase, command to start game
+    while(writeP){
+        printBoard();
+        startGame();
+    }
+
+    //Forth; Play-phase, until player either presses Q, QQ, SW, or writes a command to move cards
+    while(!gameIsFinished()){
+
+        printBoard();
+        printf("\nLAST Command: %s\n", lastCommand);
+        printf("Message: %s\n", message);
+        printf("Input > ");
+
+        char str[40];
+        scanf("%s", str);
+        printf("\n");
+
+        strcpy(lastCommand, str);
+
+        if(str[0] == 'C' || str[0] == 'F'){
+            moveCard(str);
+        }else if(str[0] == 'Q' && str[1] == 'Q' && str[2] == '\0'){
+            QQ();
+        }else if(str[0] == 'Q' && str[1] == '\0'){
+            Q();
+        }else if(str[0] == 'S' && str[1] == 'W' && str[2] == '\0'){
+            SW();
+        }
+        else{
+            strcpy(message, "invalid  command, write in Q, QQ, SW, or a command to move a card");
+        }
+
+    }
+
+
+
 
     /**This tests if our input of txt file works with input from the user
      * And: To check if there is no spaces in the array. And the correct deck of cards are placed**/
@@ -713,7 +1211,6 @@ int main(){
     /*char openCardCommand[] = "Cards.txt";
     LD(openCardCommand);
 
-
     initPiles();
 
     SI(allCards);
@@ -723,7 +1220,7 @@ int main(){
      */
 
 
-    /**This tests if the following command works "C2->C1", the method used is MoveCard which contains
+    /**This tests if the following command works "C2->C1", the method used is moveCard which contains
      *all the necessary logic in order to move a card**/
     /*Card card = {NULL, NULL, '2', 'H', '0'};
     Card card1 = {NULL, NULL, 'A', 'S', '0'};
@@ -736,13 +1233,19 @@ int main(){
     char command[] = "C2->C1";
 
     printf("Bottom of C1 before moveCard: %c\n", C1->tail->suit);
+    printf("Bottom of C2 before move %c\n", C2->tail->suit);
+    //printBoard();
+    //printf("\n");
 
-    moveCard(command, selectFromPile(command), selectToPile(command));
+    moveCard(command);
 
     printf("%s \n", message); //Should say OK!
 
-    printf("Bottom of C1 after moveCard: %c", C1->tail->suit);
-    */
+    printf("Bottom of C1 after moveCard: %c\n\n", C1->tail->suit);
+
+    //printBoard();
+     */
+
 
     /**This tests if the following command works "C2:2C->C1", the method used is MoveCard which contains
      *all the necessary logic in order to move a card**/
