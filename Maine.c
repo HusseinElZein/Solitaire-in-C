@@ -96,11 +96,8 @@ void moveCard(char commands[]) {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
 
+        removeCardFromPile(selectFromPile(commands));
         moveCardToFoundation(card, selectToPile(commands));
-        if(cardCanMove){
-            removeCardFromPile(selectFromPile(commands));
-            cardCanMove = false;
-        }
 
 
     }else if (commands[0] == 'C' && commands[2] == ':'
@@ -469,7 +466,6 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile) {
 
     //May be buggy, and's (&&) do ignore each other for some reason
     while ((current->suit != cardSuit || current->number != number) && i < pile->sizeOfPile) {
-
         current = current->prev;
         i++;
     }
@@ -596,10 +592,10 @@ void printBoard() {
     Card *trackOfC6 = C6->head;
     Card *trackOfC7 = C7->head;
 
-    Card* F1tail = F1->tail;
-    Card* F2tail = F2->tail;
-    Card* F3tail = F3->tail;
-    Card* F4tail = F4->tail;
+    Card *F1tail = F1->tail;
+    Card *F2tail = F2->tail;
+    Card *F3tail = F3->tail;
+    Card *F4tail = F4->tail;
 
     bool done = false;
     bool foundationsPrinted = false;
@@ -693,19 +689,19 @@ void printBoard() {
             }
 
             if (F2tail != NULL) {
-                printf("%c%c\t\t", F1tail->number, F1tail->suit);
+                printf("%c%c\t\t", F2tail->number, F2tail->suit);
             } else {
                 printf("[]\t\t");
             }
 
             if (F3tail != NULL) {
-                printf("%c%c\t\t", F1tail->number, F1tail->suit);
+                printf("%c%c\t\t", F3tail->number, F3tail->suit);
             } else {
                 printf("[]\t\t");
             }
 
             if (F4tail != NULL) {
-                printf("%c%c", F1tail->number, F1tail->suit);
+                printf("%c%c\n", F4tail->number, F4tail->suit);
             } else {
                 printf("[]\n");
             }
@@ -719,8 +715,11 @@ void printBoard() {
         }
     }
 }
+bool SWused = false;
 
 void SW() {
+    strcpy(message, "Now showing all cards, to hide the cards again, type a random command");
+    SWused = true;
 
     printf("C1\t\tC2\t\tC3\t\tC4\t\tC5\t\tC6\t\tC7\t\t\tF1\t\tF2\t\tF3\t\tF4\n");
 
@@ -793,25 +792,25 @@ void SW() {
 
         if(!foundationsPrinted) {
             if (F1tail != NULL) {
-                printf("%c%c", F1tail->number, F1tail->suit);
+                printf("%c%c\t\t", F1tail->number, F1tail->suit);
             } else {
                 printf("[]\t\t");
             }
 
             if (F2tail != NULL) {
-                printf("%c%c", F2tail->number, F2tail->suit);
+                printf("%c%c\t\t", F2tail->number, F2tail->suit);
             } else {
                 printf("[]\t\t");
             }
 
             if (F3tail != NULL) {
-                printf("%c%c", F3tail->number, F3tail->suit);
+                printf("%c%c\t\t", F3tail->number, F3tail->suit);
             } else {
                 printf("[]\t\t");
             }
 
             if (F4tail != NULL) {
-                printf("%c%c", F4tail->number, F4tail->suit);
+                printf("%c%c\n", F4tail->number, F4tail->suit);
             } else {
                 printf("[]\n");
             }
@@ -1053,6 +1052,7 @@ void loadShuffleInput() {
 bool gameIsFinished(){
     if(C1->head == NULL && C2->head == NULL && C3->head == NULL && C4->head == NULL && C5->head == NULL
     && C6->head == NULL && C7->head == NULL){
+        strcpy(message, "Congratulations, you have finished Yukon");
         return true;
     }else{
         return false;
@@ -1065,11 +1065,11 @@ void QQ(){
 
 void Q(){
     bool done = false;
+    strcpy(message, "Entered Q in play phase");
 
     while(!done) {
         printBoard();
         printf("\nLAST Command: %s\n", lastCommand);
-        strcpy(message, "Entered Q in play phase");
         printf("Message: %s\n", message);
         printf("Input > ");
 
@@ -1165,9 +1165,13 @@ int main(){
     }
 
     //Forth; Play-phase, until player either presses Q, QQ, SW, or writes a command to move cards
-    while(!gameIsFinished()){
+    while(!gameIsFinished()) {
 
+        if (!SWused) {
         printBoard();
+        }else{
+            SWused = false;
+        }
         printf("\nLAST Command: %s\n", lastCommand);
         printf("Message: %s\n", message);
         printf("Input > ");
@@ -1182,16 +1186,16 @@ int main(){
             moveCard(str);
         }else if(str[0] == 'Q' && str[1] == 'Q' && str[2] == '\0'){
             QQ();
-        }else if(str[0] == 'Q' && str[1] == '\0'){
-            Q();
         }else if(str[0] == 'S' && str[1] == 'W' && str[2] == '\0'){
             SW();
+        }else if(str[0] == 'Q' && str[1] == '\0') {
+        Q();
         }
         else{
             strcpy(message, "invalid  command, write in Q, QQ, SW, or a command to move a card");
         }
-
     }
+    printBoard();
 
 
 
