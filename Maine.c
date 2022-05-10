@@ -174,7 +174,7 @@ void moveCard(char commands[]) {
                                                           selectSeveralToPile(commands));
 
         if (chosenCard != NULL) {
-            if (chosenCard->number == 'K' || selectSeveralToPile(commands)->sizeOfPile > 0) {
+            if (selectSeveralToPile(commands)->sizeOfPile > 0) {
 
                 if (chosenCard->isHidden == 0) {
                     if (!bottomCard) {
@@ -192,7 +192,7 @@ void moveCard(char commands[]) {
                     strcpy(message, "card is hidden and can therefore not be moved");
                 }
             } else {
-                strcpy(message, "Specific card is not a king, therefore cannot be moved into an empty column");
+                strcpy(message, "You can only move one card at a time to an empty column");
             }
         }else{
             strcpy(message, "Specific card does not exist");
@@ -556,7 +556,7 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
         bottomCard = true;
     }
 
-    if(toPile->sizeOfPile == 0 && current->number == 'K'){
+    if(toPile->sizeOfPile > 0){
         if (current->suit == cardSuit && current->number == number && i != 1) {
             if (current->isHidden != 1) {
                 chosenCard = current;
@@ -580,7 +580,7 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
             strcpy(message, "Error, specific card cannot be moved");
         }
     } else {
-        strcpy(message, "Error, card not found or is at bottom of pile, or is not a King");
+        strcpy(message, "Error, you cannot move several cards to an empty column");
     }
 
     if(toPile->sizeOfPile > 0) {
