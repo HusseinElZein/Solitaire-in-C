@@ -843,7 +843,7 @@ void SW() {
     strcpy(message, "Now showing all cards, to hide the cards again, type a random command");
     SWused = true;
 
-    printf("C1\t\tC2\t\tC3\t\tC4\t\tC5\t\tC6\t\tC7\t\t\tF1\t\tF2\t\tF3\t\tF4\n");
+    printf("C1\tC2\tC3\tC4\tC5\tC6\tC7\tF1\tF2\tF3\tF4\n");
 
     Card *trackOfC1 = C1->head;
     Card *trackOfC2 = C2->head;
@@ -864,71 +864,71 @@ void SW() {
     while (!done) {
 
         if (trackOfC1 != NULL) {
-            printf("%c%c\t\t", trackOfC1->number, trackOfC1->suit);
+            printf("%c%c\t", trackOfC1->number, trackOfC1->suit);
             trackOfC1 = trackOfC1->next;
         } else {
-            printf("\t\t");
+            printf("\t");
         }
 
         if (trackOfC2 != NULL) {
-                printf("%c%c\t\t", trackOfC2->number, trackOfC2->suit);
+                printf("%c%c\t", trackOfC2->number, trackOfC2->suit);
                 trackOfC2 = trackOfC2->next;
         } else {
-            printf("\t\t");
+            printf("\t");
         }
 
         if (trackOfC3 != NULL) {
-            printf("%c%c\t\t", trackOfC3->number, trackOfC3->suit);
+            printf("%c%c\t", trackOfC3->number, trackOfC3->suit);
             trackOfC3 = trackOfC3->next;
         } else {
-            printf("\t\t");
+            printf("\t");
         }
 
         if (trackOfC4 != NULL) {
-            printf("%c%c\t\t", trackOfC4->number, trackOfC4->suit);
+            printf("%c%c\t", trackOfC4->number, trackOfC4->suit);
             trackOfC4 = trackOfC4->next;
         } else {
-            printf("\t\t");
+            printf("\t");
         }
 
         if (trackOfC5 != NULL) {
-            printf("%c%c\t\t", trackOfC5->number, trackOfC5->suit);
+            printf("%c%c\t", trackOfC5->number, trackOfC5->suit);
             trackOfC5 = trackOfC5->next;
         } else {
-            printf("\t\t");
+            printf("\t");
         }
 
         if (trackOfC6 != NULL) {
-            printf("%c%c\t\t", trackOfC6->number, trackOfC6->suit);
+            printf("%c%c\t", trackOfC6->number, trackOfC6->suit);
             trackOfC6 = trackOfC6->next;
         } else {
-            printf("\t\t");
+            printf("\t");
         }
 
         if (trackOfC7 != NULL) {
-            printf("%c%c\t\t\t", trackOfC7->number, trackOfC7->suit);
+            printf("%c%c\t", trackOfC7->number, trackOfC7->suit);
             trackOfC7 = trackOfC7->next;
         } else {
-            printf("\t\t\t");
+            printf("\t");
         }
 
         if(!foundationsPrinted) {
             if (F1tail != NULL) {
-                printf("%c%c\t\t", F1tail->number, F1tail->suit);
+                printf("%c%c\t", F1tail->number, F1tail->suit);
             } else {
-                printf("[]\t\t");
+                printf("[]\t");
             }
 
             if (F2tail != NULL) {
-                printf("%c%c\t\t", F2tail->number, F2tail->suit);
+                printf("%c%c\t", F2tail->number, F2tail->suit);
             } else {
-                printf("[]\t\t");
+                printf("[]\t");
             }
 
             if (F3tail != NULL) {
-                printf("%c%c\t\t", F3tail->number, F3tail->suit);
+                printf("%c%c\t", F3tail->number, F3tail->suit);
             } else {
-                printf("[]\t\t");
+                printf("[]\t");
             }
 
             if (F4tail != NULL) {
