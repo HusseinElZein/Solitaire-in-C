@@ -37,7 +37,7 @@ Pile* selectToPile(char command[]);
 Pile* selectSeveralToPile(char command[]);
 void startAdding(Card *cardMoved, Pile *pile);
 void moveCardsToPile(Card *cardMoved, Pile *pile);
-Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile);
+Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pile *toPile);
 void addInShuffledCardsIntoColumn(char shuffledCards[]);
 void LD(char openFileCommand[]);
 void readIntoArray(FILE *pF);
@@ -75,6 +75,7 @@ void removeCardFromPile(Pile *pile) {
     pile->sizeOfPile--;
 }
 bool bottomCard = false;
+bool cardCanMove = true;
 
 //This either removes a bottom card from one pile and adds it to the other
 //Or it removes a certain amount of cards from one pile to another
@@ -104,12 +105,17 @@ void moveCard(char commands[]) {
                && commands[5] == '-' && commands[6] == '>'
                && commands[7] == 'C' && selectSeveralToPile(commands)->sizeOfPile > 0) {
 
-        Card *chosenCard = chooseFromSpecificCardInColumn(commands[4], commands[3], selectFromPile(commands));
+        Card *chosenCard = chooseFromSpecificCardInColumn(commands[4], commands[3], selectFromPile(commands),
+                                                          selectSeveralToPile(commands));
 
         if(chosenCard->isHidden == 0) {
             if(!bottomCard) {
-                moveCardsToPile(chosenCard, selectSeveralToPile(commands));
-                strcpy(message, "OK");
+                if(cardCanMove) {
+                    moveCardsToPile(chosenCard, selectSeveralToPile(commands));
+                    strcpy(message, "OK");
+                }else{
+                    cardCanMove = true;
+                }
             }else{
                 bottomCard = false;
                 strcpy(message, "Choose another way to move a bottom card");
@@ -455,7 +461,7 @@ void startAdding(Card *cardMoved, Pile *pile) {
 int i;
 
 //This chooses a specific card from a specific pile
-Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile) {
+Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pile *toPile) {
 
     Card *chosenCard = malloc(sizeof(Card));
     chosenCard->isHidden = 0;
@@ -476,23 +482,31 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile) {
         bottomCard = true;
     }
 
-    if (current->suit == cardSuit && current->number == number && i != 1) {
-        if (current->isHidden != 1) {
-            chosenCard = current;
 
-            if (current->prev != NULL) {
-                Card *beforeCurrent = current->prev;
-                beforeCurrent->next = NULL;
-                pile->tail = beforeCurrent;
-                pile->tail->isHidden = 0;
+
+    if (current->suit == cardSuit && current->number == number && i != 1) {
+        if (current->suit != toPile->tail->suit
+            && canBeMoved(current->number) == pile->tail->number) {
+            if (current->isHidden != 1) {
+                chosenCard = current;
+
+                if (current->prev != NULL) {
+                    Card *beforeCurrent = current->prev;
+                    beforeCurrent->next = NULL;
+                    pile->tail = beforeCurrent;
+                    pile->tail->isHidden = 0;
+                } else {
+                    pile->tail = NULL;
+                    pile->head = NULL;
+                }
+                pile->sizeOfPile -= i;
+                strcpy(message, "OK");
             } else {
-                pile->tail = NULL;
-                pile->head = NULL;
+                strcpy(message, "Card is hidden and can therefore not be moved");
             }
-            pile->sizeOfPile -= i;
-            strcpy(message, "OK");
         }else{
-            strcpy(message, "Card is hidden and can therefore not be moved");
+            cardCanMove = false;
+            strcpy(message, "Error, specific card cannot be moved");
         }
     }else {
         strcpy(message, "Error, card not found or card is at bottom of pile");
