@@ -1316,13 +1316,10 @@ int main(){
         Q();
         }
         else{
-            strcpy(message, "invalid  command, write in Q, QQ, SW, or a command to move a card");
+            strcpy(message, "Write in Q, QQ, SW, or a command to move a card");
         }
     }
     printBoard();
-
-
-
 
     /**This tests if our input of txt file works with input from the user
      * And: To check if there is no spaces in the array. And the correct deck of cards are placed**/
