@@ -104,8 +104,9 @@ void removeCardFromPile(Pile *pile, Pile *toPile) {
     }
 }
 
-void removeCardFromPileToFoundation(Pile *pile) {
+void removeCardFromPileToFoundation(Pile *pile, Pile *toPile) {
 
+    if(toPile->sizeOfPile == 0){
         if (pile->sizeOfPile != 0) {
 
             if (pile->sizeOfPile > 1) {
@@ -122,7 +123,32 @@ void removeCardFromPileToFoundation(Pile *pile) {
             return;
         }
         pile->sizeOfPile--;
+        return;
     }
+
+    if(toPile->sizeOfPile > 0) {
+        if (pile->tail->suit == toPile->tail->suit
+            && canBeMovedToFoundation(pile->tail->number) == toPile->tail->number) {
+            if (pile->sizeOfPile != 0) {
+
+                if (pile->sizeOfPile > 1) {
+                    pile->tail = pile->tail->prev;
+                    pile->tail->isHidden = 0;
+                    pile->tail->next = NULL;
+                } else if (pile->sizeOfPile == 1) {
+                    pile->tail = NULL;
+                    pile->head = NULL;
+                }
+                strcpy(message, "OK");
+            } else {
+                strcpy(message, "error, empty pile");
+                return;
+            }
+            pile->sizeOfPile--;
+        }
+    }
+}
+
 bool bottomCard = false;
 bool cardCanMove = true;
 
@@ -159,7 +185,7 @@ void moveCard(char commands[]) {
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
 
         if (card != NULL) {
-            removeCardFromPileToFoundation(selectFromPile(commands));
+            removeCardFromPileToFoundation(selectFromPile(commands), selectToPile(commands));
             moveCardToFoundation(card, selectToPile(commands));
         }else{
             strcpy(message, "Card does not exist");
@@ -582,36 +608,6 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
     } else {
         strcpy(message, "Error, you cannot move several cards to an empty column");
     }
-
-    if(toPile->sizeOfPile > 0) {
-        if (current->suit == cardSuit && current->number == number && i != 1) {
-            if (current->suit != toPile->tail->suit
-                && canBeMoved(current->number) == toPile->tail->number) {
-                if (current->isHidden != 1) {
-                    chosenCard = current;
-
-                    if (current->prev != NULL) {
-                        Card *beforeCurrent = current->prev;
-                        beforeCurrent->next = NULL;
-                        pile->tail = beforeCurrent;
-                        pile->tail->isHidden = 0;
-                    } else {
-                        pile->tail = NULL;
-                        pile->head = NULL;
-                    }
-                    pile->sizeOfPile -= i;
-                    strcpy(message, "OK");
-                } else {
-                    strcpy(message, "Card is hidden and can therefore not be moved");
-                }
-            } else {
-                cardCanMove = false;
-                strcpy(message, "Error, specific card cannot be moved");
-            }
-        } else {
-            strcpy(message, "Error, card not found or card is at bottom of pile");
-        }
-    }
     return chosenCard;
 }
 
@@ -1006,11 +1002,13 @@ void readIntoArray(FILE *pF) {
             } else {
                 int half = lineNumber / 2;
                 printf("There is an error reading your txt file at line %d\n", half);
-                break;
+                exit(0);
+                strcpy(message, "Write a file name that does not have an error in any lines");
+                return;
             }
         }
     }
-    strcpy(message, "File loaded successfully");
+    strcpy(message, "File loaded successfully, now you can shuffle with SR or SI");
     writeFileName = false;
 }
 
@@ -1054,7 +1052,7 @@ void SI(char allCards[]){
         allCards[k] = halfTwo[j + 1];
         k++;
     }
-    strcpy(message, "Loaded SI successfully");
+    strcpy(message, "Loaded SI successfully, press P to play");
 }
 
 char shuffledCards[104];
@@ -1108,7 +1106,7 @@ void SR(char allCards[]){
             }
         }
     }
-    strcpy(message, "Loaded SR successfully");
+    strcpy(message, "Loaded SR successfully, press P to play");
 }
 
 int getRandomNumber(int min, int max) {
@@ -1195,7 +1193,7 @@ void Q(){
     while(!done) {
         printBoard();
         printf("\nLAST Command: %s\n", lastCommand);
-        printf("Message: %s\n", message);
+        printf("Message: write QQ or P\n");
         printf("Input > ");
 
         char str[5];
@@ -1211,7 +1209,7 @@ void Q(){
         }else if(str[0] == 'Q' && str[1] == 'Q' && str[2] == '\0') {
             strcpy(lastCommand, str);
             done = true;
-            strcpy(message, "OK");
+            QQ();
         }else{
             strcpy(message, "Write in QQ to quit, or P to continue playing");
         }
