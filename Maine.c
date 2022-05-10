@@ -83,7 +83,7 @@ void moveCard(char commands[]) {
     //Checking if can be moved from a column or foundation only into a column
     if ((commands[0] == 'C' || commands[0] == 'F')
         && commands[2] == '-' && commands[3] == '>' &&
-        commands[4] == 'C') {
+        commands[4] == 'C' && selectToPile(commands)->sizeOfPile > 0) {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
 
@@ -100,9 +100,12 @@ void moveCard(char commands[]) {
         moveCardToFoundation(card, selectToPile(commands));
 
 
+        //C 2 : A H - > F 1
+        //0 1 2 3 4 5 6 7 8
+
     }else if (commands[0] == 'C' && commands[2] == ':'
                && commands[5] == '-' && commands[6] == '>'
-               && commands[7] == 'C') {
+               && commands[7] == 'C' && selectSeveralToPile(commands)->sizeOfPile > 0) {
 
         Card *chosenCard = chooseFromSpecificCardInColumn(commands[4], commands[3], selectFromPile(commands));
         if (chosenCard != NULL) {
