@@ -199,7 +199,7 @@ void moveCard(char commands[]) {
         Card *chosenCard = chooseFromSpecificCardInColumn(commands[4], commands[3], selectFromPile(commands),
                                                           selectSeveralToPile(commands));
 
-        if (chosenCard != NULL) {
+        if (chosenCard->number != '\0') {
             if (selectSeveralToPile(commands)->sizeOfPile > 0) {
 
                 if (chosenCard->isHidden == 0) {
@@ -221,7 +221,7 @@ void moveCard(char commands[]) {
                 strcpy(message, "You can only move one card at a time to an empty column");
             }
         }else{
-            strcpy(message, "Specific card does not exist");
+            strcpy(message, "Specific card does not exist or is hidden");
         }
     }else {
         strcpy(message, "error in command");
@@ -586,6 +586,7 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
         if (current->suit == cardSuit && current->number == number && i != 1) {
             if (current->isHidden != 1) {
                 chosenCard = current;
+                chosenCard->isHidden = current->isHidden;
 
                 if (current->prev != NULL) {
                     Card *beforeCurrent = current->prev;
