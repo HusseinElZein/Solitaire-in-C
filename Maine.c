@@ -27,7 +27,7 @@ char lastCommand[64] = "NONE";
 
 //Declaring all the methods
 Card* chooseTailCardFromPile(Pile pile);
-void removeCardFromPile(Pile *pile);
+void removeCardFromPile(Pile *pile, Pile *toPile);
 void moveCard(char commands[]);
 void moveCardToPile(Card *cardMoved, Pile *pile);
 char canBeMoved(char numberOfCardMoved);
@@ -54,28 +54,57 @@ Card* chooseTailCardFromPile(Pile pile) {
     return pile.tail;
 }
 
+bool cardCanMoveFirstIf = true;
 //This removes the tail from a given pile
-void removeCardFromPile(Pile *pile) {
+void removeCardFromPile(Pile *pile, Pile *toPile) {
 
-    if (pile->sizeOfPile != 0) {
+    if (pile->tail->suit != toPile->tail->suit
+        && canBeMoved(pile->tail->number) == toPile->tail->number) {
 
-        if (pile->sizeOfPile > 1) {
-            pile->tail = pile->tail->prev;
-            pile->tail->isHidden = 0;
-            pile->tail->next = NULL;
-        } else if (pile->sizeOfPile == 1) {
-            pile->tail = NULL;
-            pile->head = NULL;
+        if (pile->sizeOfPile != 0) {
+
+            if (pile->sizeOfPile > 1) {
+                pile->tail = pile->tail->prev;
+                pile->tail->isHidden = 0;
+                pile->tail->next = NULL;
+            } else if (pile->sizeOfPile == 1) {
+                pile->tail = NULL;
+                pile->head = NULL;
+            }
+            strcpy(message, "OK");
+        } else {
+            strcpy(message, "error, empty pile");
+            return;
         }
-        strcpy(message, "OK");
-    } else {
-        strcpy(message, "error, empty pile");
-        return;
+        pile->sizeOfPile--;
+    }else{
+        strcpy(message, "Card of given pile cannot be moved");
+        cardCanMoveFirstIf = false;
     }
-    pile->sizeOfPile--;
 }
+
+void removeCardFromPileToFoundation(Pile *pile) {
+
+        if (pile->sizeOfPile != 0) {
+
+            if (pile->sizeOfPile > 1) {
+                pile->tail = pile->tail->prev;
+                pile->tail->isHidden = 0;
+                pile->tail->next = NULL;
+            } else if (pile->sizeOfPile == 1) {
+                pile->tail = NULL;
+                pile->head = NULL;
+            }
+            strcpy(message, "OK");
+        } else {
+            strcpy(message, "error, empty pile");
+            return;
+        }
+        pile->sizeOfPile--;
+    }
 bool bottomCard = false;
 bool cardCanMove = true;
+
 
 //This either removes a bottom card from one pile and adds it to the other
 //Or it removes a certain amount of cards from one pile to another
@@ -88,8 +117,12 @@ void moveCard(char commands[]) {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
 
-        removeCardFromPile(selectFromPile(commands));
-        moveCardToPile(card, selectToPile(commands));
+        if(cardCanMoveFirstIf) {
+            removeCardFromPile(selectFromPile(commands), selectToPile(commands));
+            moveCardToPile(card, selectToPile(commands));
+        }else{
+            cardCanMoveFirstIf = true;
+        }
 
     }else if((commands[0] == 'C' || commands[0] == 'F')
              && commands[2] == '-' && commands[3] == '>' &&
@@ -97,7 +130,7 @@ void moveCard(char commands[]) {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
 
-        removeCardFromPile(selectFromPile(commands));
+        removeCardFromPileToFoundation(selectFromPile(commands));
         moveCardToFoundation(card, selectToPile(commands));
 
 
@@ -482,11 +515,9 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
         bottomCard = true;
     }
 
-
-
     if (current->suit == cardSuit && current->number == number && i != 1) {
         if (current->suit != toPile->tail->suit
-            && canBeMoved(current->number) == pile->tail->number) {
+            && canBeMoved(current->number) == toPile->tail->number) {
             if (current->isHidden != 1) {
                 chosenCard = current;
 
