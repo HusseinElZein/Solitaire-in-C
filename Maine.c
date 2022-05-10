@@ -58,9 +58,7 @@ bool cardCanMoveFirstIf = true;
 //This removes the tail from a given pile
 void removeCardFromPile(Pile *pile, Pile *toPile) {
 
-    if (pile->tail->suit != toPile->tail->suit
-        && canBeMoved(pile->tail->number) == toPile->tail->number) {
-
+    if(toPile->sizeOfPile == 0){
         if (pile->sizeOfPile != 0) {
 
             if (pile->sizeOfPile > 1) {
@@ -77,9 +75,32 @@ void removeCardFromPile(Pile *pile, Pile *toPile) {
             return;
         }
         pile->sizeOfPile--;
-    }else{
-        strcpy(message, "Card of given pile cannot be moved");
-        cardCanMoveFirstIf = false;
+    }
+
+    if(toPile->sizeOfPile > 0) {
+        if (pile->tail->suit != toPile->tail->suit
+            && canBeMoved(pile->tail->number) == toPile->tail->number) {
+
+            if (pile->sizeOfPile != 0) {
+
+                if (pile->sizeOfPile > 1) {
+                    pile->tail = pile->tail->prev;
+                    pile->tail->isHidden = 0;
+                    pile->tail->next = NULL;
+                } else if (pile->sizeOfPile == 1) {
+                    pile->tail = NULL;
+                    pile->head = NULL;
+                }
+                strcpy(message, "OK");
+            } else {
+                strcpy(message, "error, empty pile");
+                return;
+            }
+            pile->sizeOfPile--;
+        } else {
+            strcpy(message, "Card of given pile cannot be moved");
+            cardCanMoveFirstIf = false;
+        }
     }
 }
 
@@ -113,48 +134,68 @@ void moveCard(char commands[]) {
     //Checking if can be moved from a column or foundation only into a column
     if ((commands[0] == 'C' || commands[0] == 'F')
         && commands[2] == '-' && commands[3] == '>' &&
-        commands[4] == 'C' && selectToPile(commands)->sizeOfPile > 0) {
+        commands[4] == 'C') {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
-
-        if(cardCanMoveFirstIf) {
-            removeCardFromPile(selectFromPile(commands), selectToPile(commands));
-            moveCardToPile(card, selectToPile(commands));
+        if(card != NULL) {
+            if (card->number == 'K' || (selectToPile(commands)->sizeOfPile > 0)) {
+                if (cardCanMoveFirstIf) {
+                    removeCardFromPile(selectFromPile(commands), selectToPile(commands));
+                    moveCardToPile(card, selectToPile(commands));
+                } else {
+                    cardCanMoveFirstIf = true;
+                }
+            } else {
+                strcpy(message, "Card cannot be moved to empty column if it is not a King");
+            }
         }else{
-            cardCanMoveFirstIf = true;
+            strcpy(message, "Card does not exist");
         }
 
     }else if((commands[0] == 'C' || commands[0] == 'F')
              && commands[2] == '-' && commands[3] == '>' &&
-             commands[4] == 'F'){
+             commands[4] == 'F') {
 
         Card *card = chooseTailCardFromPile(*selectFromPile(commands));
 
-        removeCardFromPileToFoundation(selectFromPile(commands));
-        moveCardToFoundation(card, selectToPile(commands));
+        if (card != NULL) {
+            removeCardFromPileToFoundation(selectFromPile(commands));
+            moveCardToFoundation(card, selectToPile(commands));
+        }else{
+            strcpy(message, "Card does not exist");
+        }
 
 
     }else if (commands[0] == 'C' && commands[2] == ':'
                && commands[5] == '-' && commands[6] == '>'
-               && commands[7] == 'C' && selectSeveralToPile(commands)->sizeOfPile > 0) {
+               && commands[7] == 'C') {
 
         Card *chosenCard = chooseFromSpecificCardInColumn(commands[4], commands[3], selectFromPile(commands),
                                                           selectSeveralToPile(commands));
 
-        if(chosenCard->isHidden == 0) {
-            if(!bottomCard) {
-                if(cardCanMove) {
-                    moveCardsToPile(chosenCard, selectSeveralToPile(commands));
-                    strcpy(message, "OK");
-                }else{
-                    cardCanMove = true;
+        if (chosenCard != NULL) {
+            if (chosenCard->number == 'K' || selectSeveralToPile(commands)->sizeOfPile > 0) {
+
+                if (chosenCard->isHidden == 0) {
+                    if (!bottomCard) {
+                        if (cardCanMove) {
+                            moveCardsToPile(chosenCard, selectSeveralToPile(commands));
+                            strcpy(message, "OK");
+                        } else {
+                            cardCanMove = true;
+                        }
+                    } else {
+                        bottomCard = false;
+                        strcpy(message, "Choose another way to move a bottom card");
+                    }
+                } else {
+                    strcpy(message, "card is hidden and can therefore not be moved");
                 }
-            }else{
-                bottomCard = false;
-                strcpy(message, "Choose another way to move a bottom card");
+            } else {
+                strcpy(message, "Specific card is not a king, therefore cannot be moved into an empty column");
             }
         }else{
-            strcpy(message, "card is hidden and can therefore not be moved");
+            strcpy(message, "Specific card does not exist");
         }
     }else {
         strcpy(message, "error in command");
@@ -506,7 +547,7 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
     Card *current = pile->tail;
     i = 1;
 
-    //May be buggy, and's (&&) do ignore each other for some reason
+
     while ((current->suit != cardSuit || current->number != number) && i < pile->sizeOfPile) {
         current = current->prev;
         i++;
@@ -515,9 +556,8 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
         bottomCard = true;
     }
 
-    if (current->suit == cardSuit && current->number == number && i != 1) {
-        if (current->suit != toPile->tail->suit
-            && canBeMoved(current->number) == toPile->tail->number) {
+    if(toPile->sizeOfPile == 0 && current->number == 'K'){
+        if (current->suit == cardSuit && current->number == number && i != 1) {
             if (current->isHidden != 1) {
                 chosenCard = current;
 
@@ -535,12 +575,42 @@ Card* chooseFromSpecificCardInColumn(char cardSuit, char number, Pile *pile, Pil
             } else {
                 strcpy(message, "Card is hidden and can therefore not be moved");
             }
-        }else{
+        } else {
             cardCanMove = false;
             strcpy(message, "Error, specific card cannot be moved");
         }
-    }else {
-        strcpy(message, "Error, card not found or card is at bottom of pile");
+    } else {
+        strcpy(message, "Error, card not found or is at bottom of pile, or is not a King");
+    }
+
+    if(toPile->sizeOfPile > 0) {
+        if (current->suit == cardSuit && current->number == number && i != 1) {
+            if (current->suit != toPile->tail->suit
+                && canBeMoved(current->number) == toPile->tail->number) {
+                if (current->isHidden != 1) {
+                    chosenCard = current;
+
+                    if (current->prev != NULL) {
+                        Card *beforeCurrent = current->prev;
+                        beforeCurrent->next = NULL;
+                        pile->tail = beforeCurrent;
+                        pile->tail->isHidden = 0;
+                    } else {
+                        pile->tail = NULL;
+                        pile->head = NULL;
+                    }
+                    pile->sizeOfPile -= i;
+                    strcpy(message, "OK");
+                } else {
+                    strcpy(message, "Card is hidden and can therefore not be moved");
+                }
+            } else {
+                cardCanMove = false;
+                strcpy(message, "Error, specific card cannot be moved");
+            }
+        } else {
+            strcpy(message, "Error, card not found or card is at bottom of pile");
+        }
     }
     return chosenCard;
 }
